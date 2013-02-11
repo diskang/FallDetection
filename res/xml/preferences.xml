@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory
+        android:key="pref_key_notification_settings"
+        android:title="Notification Settings" >
+        
+        <CheckBoxPreference
+            android:key="pref_key_notifications_enabled"
+            android:summary="Notify the caretaker by SMS and phone call upon a fall."
+            android:title="Notify caretaker"
+            android:defaultValue="true" />
+        
+        <EditTextPreference
+            android:inputType="phone"
+            android:dialogTitle="Phone number"
+            android:key="pref_key_phone_number"
+            android:summary="The phone number of the caretaker."
+            android:title="Phone number"
+            android:dependency="pref_key_notifications_enabled" />
+        
+        <EditTextPreference
+            android:dialogTitle="Custom voice message"
+            android:key="pref_key_custom_voice_message"
+            android:summary="The message that will be played during the voice call made upon a fall."
+            android:title="Custom voice message"
+            android:dependency="pref_key_notifications_enabled" />
+
+        <EditTextPreference
+            android:dialogTitle="Custom SMS message"
+            android:key="pref_key_custom_sms_message"
+            android:summary="The message that will be sent in the SMS message made upon a fall."
+            android:title="Custom SMS message"
+            android:dependency="pref_key_notifications_enabled" />
+        
+    </PreferenceCategory>
+
+</PreferenceScreen>
