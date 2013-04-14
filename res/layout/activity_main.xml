@@ -2,65 +2,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
     android:orientation="vertical"
-    android:weightSum="1.0" >
+    android:weightSum="1.0"
+    tools:context=".MainActivity" >
 
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="0.05"
-        android:text="Acceleration X"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
-
-    <com.bendeming.falldetection.GraphView
-        android:id="@+id/accelerometerXGraphView"
+    <Button
+        android:id="@+id/button1"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.15" />
-    
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="0.05"
-        android:text="Acceleration Y"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
-
-    <com.bendeming.falldetection.GraphView
-        android:id="@+id/accelerometerYGraphView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.15" />
-    
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="0.05"
-        android:text="Acceleration Z"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
-
-    <com.bendeming.falldetection.GraphView
-        android:id="@+id/accelerometerZGraphView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.15" />
-
-    <TextView
-        android:id="@+id/textView4"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="0.12"
-        android:text="NOTE: none of these values are corrected for the effect of gravity – yet. That's why whichever axis is parallel to the Y-axis is off a bit"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
-
-    <com.bendeming.falldetection.PhoneView
-        android:id="@+id/phoneView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_gravity="center"
-        android:layout_weight="0.28" />
+        android:layout_height="match_parent"
+        android:onClick="buttonPressed"
+        android:text="Start Data Collection"
+        android:enabled="false" />
 
 </LinearLayout>

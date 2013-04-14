@@ -1,7 +1,6 @@
 package com.bendeming.falldetection;
 
 import java.text.NumberFormat;
-import java.util.Arrays;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -14,6 +13,8 @@ import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 
 public class MainActivity extends Activity {
 
@@ -34,115 +35,25 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		this.setContentView(R.layout.activity_main);
 
-		this.phoneView = (PhoneView)this.findViewById(R.id.phoneView);
-
-		this.accelXGraphView = (GraphView)this.findViewById(R.id.accelerometerXGraphView);
-		this.accelYGraphView = (GraphView)this.findViewById(R.id.accelerometerYGraphView);
-		this.accelZGraphView = (GraphView)this.findViewById(R.id.accelerometerZGraphView);
-
-		this.df = NumberFormat.getNumberInstance();
-		this.df.setMaximumFractionDigits(3);
-
-		this.accelerationXBuffer = new float[10];
-		for (int i = 0; i < this.accelerationXBuffer.length; i++)
-			this.accelerationXBuffer[i] = Float.MAX_VALUE;
-
-		this.accelerationYBuffer = new float[10];
-		for (int i = 0; i < this.accelerationXBuffer.length; i++)
-			this.accelerationYBuffer[i] = Float.MAX_VALUE;
-
-		this.accelerationZBuffer = new float[10];
-		for (int i = 0; i < this.accelerationXBuffer.length; i++)
-			this.accelerationZBuffer[i] = Float.MAX_VALUE;
-
-		if (!this.isServiceRunning()) {
-
-			Intent serviceIntent = new Intent("data");
-			serviceIntent.setAction("com.bendeming.falldetection.FallDetectionService");
-			this.startService(serviceIntent);
-
-		}
-
 		BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
 
 			@Override
 			public synchronized void onReceive(Context context, Intent intent) {
 
-				if (intent.getExtras().getFloatArray("accelerationData") != null) {
 
-					float[] accelerationData = intent.getExtras().getFloatArray("accelerationData");
-
-					// Update X graph. Really must abstract this out so it is cleaner looking!!
-
-					int firstBlankIndex = -1;
-					for (int i = 0; i < MainActivity.this.accelerationXBuffer.length; i++)
-						if (MainActivity.this.accelerationXBuffer[i] == Float.MAX_VALUE)
-							firstBlankIndex = i;
-
-					if (firstBlankIndex == -1) {
-						MainActivity.this.accelXGraphView.updateWithValues(Arrays.copyOf(MainActivity.this.accelerationXBuffer, MainActivity.this.accelerationXBuffer.length), intent.getExtras().getFloat("maximumValue"));
-
-						for (int i = 0; i < MainActivity.this.accelerationXBuffer.length; i++)
-							MainActivity.this.accelerationXBuffer[i] = Float.MAX_VALUE;
-
-					}
-					else
-						MainActivity.this.accelerationXBuffer[firstBlankIndex] = accelerationData[0];
-
-					// Update Y graph. Really must abstract this out so it is cleaner looking!!
-
-					for (int i = 0; i < MainActivity.this.accelerationYBuffer.length; i++)
-						if (MainActivity.this.accelerationYBuffer[i] == Float.MAX_VALUE)
-							firstBlankIndex = i;
-
-					if (firstBlankIndex == -1) {
-						MainActivity.this.accelYGraphView.updateWithValues(Arrays.copyOf(MainActivity.this.accelerationYBuffer, MainActivity.this.accelerationYBuffer.length), intent.getExtras().getFloat("maximumValue"));
-
-						for (int i = 0; i < MainActivity.this.accelerationYBuffer.length; i++)
-							MainActivity.this.accelerationYBuffer[i] = Float.MAX_VALUE;
-
-					}
-					else
-						MainActivity.this.accelerationYBuffer[firstBlankIndex] = accelerationData[1];
-
-					// Update Z graph. Really must abstract this out so it is cleaner looking!!
-
-					for (int i = 0; i < MainActivity.this.accelerationZBuffer.length; i++)
-						if (MainActivity.this.accelerationZBuffer[i] == Float.MAX_VALUE)
-							firstBlankIndex = i;
-
-					if (firstBlankIndex == -1) {
-						MainActivity.this.accelZGraphView.updateWithValues(Arrays.copyOf(MainActivity.this.accelerationZBuffer, MainActivity.this.accelerationZBuffer.length), intent.getExtras().getFloat("maximumValue"));
-
-						for (int i = 0; i < MainActivity.this.accelerationZBuffer.length; i++)
-							MainActivity.this.accelerationZBuffer[i] = Float.MAX_VALUE;
-
-					}
-					else
-						MainActivity.this.accelerationZBuffer[firstBlankIndex] = accelerationData[2];
-
-
-				}
-
-				else if (intent.getExtras().getFloatArray("gyroscopeData") != null) {
-
-					float[] gyroscopeData = intent.getExtras().getFloatArray("gyroscopeData");
-
-					MainActivity.this.phoneView.rotate(MainActivity.this.radiansToDegrees(gyroscopeData[1]), MainActivity.this.radiansToDegrees(gyroscopeData[0]));
-
-				}
 
 			}
 		};
 
 		LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver,
-				new IntentFilter("data"));
+				new IntentFilter("fallDetected"));
 
-	}
+		if (!this.isServiceRunning()) {
 
-	private int radiansToDegrees(float radians) {
+			Intent intent = new Intent(this, FallDetectionService.class);
+			this.startService(intent);
 
-		return (int)(radians * (180 / Math.PI));
+		}
 
 	}
 
@@ -166,6 +77,30 @@ public class MainActivity extends Activity {
 		}
 
 		return false;
+
+	}
+
+	public void buttonPressed(View target) {
+
+		if (this.isServiceRunning()) {
+
+			Intent intent = new Intent(this, FallDetectionService.class);
+			this.stopService(intent);
+
+			Button button = (Button)target;
+			button.setText("Start Data Collection");
+
+		}
+
+		else {
+
+			Intent intent = new Intent(this, FallDetectionService.class);
+			this.startService(intent);
+
+			Button button = (Button)target;
+			button.setText("End Data Collection");
+
+		}
 
 	}
 
