@@ -2,11 +2,8 @@ package com.bendeming.falldetection;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileDescriptor;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.LineNumberReader;
 
@@ -28,7 +25,6 @@ import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
-import android.os.Environment;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
@@ -76,16 +72,16 @@ public class FallDetectionService extends Service implements SensorEventListener
 		this.wakeLock = mgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, this.getClass().getName());
 		this.wakeLock.acquire();
 
-		File outputFile = new File(Environment.getExternalStorageDirectory(), "falllog.txt");
-		System.out.println(outputFile);
+		//File outputFile = new File(Environment.getExternalStorageDirectory(), "falllog.txt");
+		//System.out.println(outputFile);
 
-		try {
+		/*try {
 			this.writer = new BufferedWriter(new FileWriter(outputFile));
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		}*/
 
 		svm_parameter param = new svm_parameter();
 		param.svm_type = svm_parameter.ONE_CLASS;
@@ -126,7 +122,7 @@ public class FallDetectionService extends Service implements SensorEventListener
 
 			for (int i = 0; i < instances.length; i++) {
 
-				for (int j = 0; i < 6; i++) {
+				for (int j = 1; i < 7; i++) {
 
 					problem.x[i][j] = new svm_node();
 					problem.x[i][j].index = j;
@@ -134,7 +130,7 @@ public class FallDetectionService extends Service implements SensorEventListener
 
 				}
 
-				problem.y[i] = 0;
+				problem.y[i] = instances[i][0];
 
 			}
 
@@ -144,6 +140,7 @@ public class FallDetectionService extends Service implements SensorEventListener
 
 		catch (Exception e) {
 
+			e.printStackTrace();
 
 		}
 
