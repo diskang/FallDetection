@@ -1,11 +1,20 @@
 package com.bendeming.falldetection;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.LineNumberReader;
 
+import libsvm.svm;
+import libsvm.svm_model;
+import libsvm.svm_node;
+import libsvm.svm_parameter;
+import libsvm.svm_problem;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -52,6 +61,8 @@ public class FallDetectionService extends Service implements SensorEventListener
 	private boolean sensorsAreRunning = false;
 	private boolean shouldLog = false;
 
+	private svm_model model;
+
 	@Override
 	public IBinder onBind(Intent intent) {
 		return null;
@@ -74,6 +85,66 @@ public class FallDetectionService extends Service implements SensorEventListener
 			e1.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+
+		svm_parameter param = new svm_parameter();
+		param.svm_type = svm_parameter.ONE_CLASS;
+		param.cache_size = 40.0;
+		param.coef0 = 0.0;
+		param.C = 1.0;
+		param.gamma = 0.0;
+		param.degree = 3;
+		param.eps = 0.0010;
+		param.kernel_type = svm_parameter.RBF;
+		param.nu = 0.5;
+		param.shrinking = 1;
+
+		svm_problem problem = new svm_problem();
+
+		try {
+
+			int fileLines = getLines(this.getAssets().openFd("poop.svm").getFileDescriptor());
+
+			problem.x = new svm_node[fileLines][6];
+			problem.l = fileLines;
+
+			BufferedReader reader = new BufferedReader(new FileReader(this.getAssets().openFd("poop.svm").getFileDescriptor()));
+
+			String line = null;
+			int lineNum = 0;
+
+			double[][] instances = new double[fileLines][6];
+
+			while ((line = reader.readLine()) != null) {
+
+				String[] splits = line.split("\\s+");
+
+				for (int i = 0; i < splits.length; i++)
+					instances[lineNum][i] = Double.parseDouble(splits[i]);
+
+			}
+
+			for (int i = 0; i < instances.length; i++) {
+
+				for (int j = 0; i < 6; i++) {
+
+					problem.x[i][j] = new svm_node();
+					problem.x[i][j].index = j;
+					problem.x[i][j].value = instances[i][j];
+
+				}
+
+				problem.y[i] = 0;
+
+			}
+
+			this.model = svm.svm_train(problem, param);
+
+		}
+
+		catch (Exception e) {
+
+
 		}
 
 		SensorManager manager = (SensorManager)this.getSystemService(Context.SENSOR_SERVICE);
@@ -225,6 +296,30 @@ public class FallDetectionService extends Service implements SensorEventListener
 			this.lastAccelerationDeltaUpdateTime = time;
 			this.lastGyroscopeDeltaUpdateTime = time;
 
+			svm_node[] nodes = new svm_node[6];
+
+			for (int i = 0; i < 3; i++) {
+
+				svm_node node = new svm_node();
+				node.index = 0;
+				node.value = this.lastAccelerometerAverages[i];
+				nodes[i] = node;
+
+			}
+
+			for (int i = 0; i < 3; i++) {
+
+				svm_node node = new svm_node();
+				node.index = 0;
+				node.value = this.lastGyroscopeAverages[i];
+				nodes[i] = node;
+
+			}
+
+			double value = svm.svm_predict(this.model, nodes);
+
+			System.out.println("Value " + value);
+
 		}
 
 		else {
@@ -289,6 +384,20 @@ public class FallDetectionService extends Service implements SensorEventListener
 			output[i] = output[i] + ALPHA * (input[i] - output[i]);
 		}
 		return output;
+	}
+
+	public static int getLines(FileDescriptor ds) throws IOException {
+		LineNumberReader reader = null;
+		try {
+			reader = new LineNumberReader(new FileReader(ds));
+			while ((reader.readLine()) != null);
+			return reader.getLineNumber();
+		} catch (Exception ex) {
+			return -1;
+		} finally {
+			if(reader != null)
+				reader.close();
+		}
 	}
 
 }
