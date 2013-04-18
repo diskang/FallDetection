@@ -2,10 +2,10 @@ package com.bendeming.falldetection;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileDescriptor;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.util.Arrays;
 
 import libsvm.svm;
 import libsvm.svm_model;
@@ -99,19 +99,32 @@ public class FallDetectionService extends Service implements SensorEventListener
 
 		try {
 
-			int fileLines = getLines(this.getAssets().openFd("poop.svm").getFileDescriptor());
+			int lines = -1;
 
-			problem.x = new svm_node[fileLines][6];
-			problem.l = fileLines;
+			LineNumberReader reader = null;
+			try {
+				reader = new LineNumberReader(new InputStreamReader(this.getAssets().open("correct.svm")));
+				while ((reader.readLine()) != null);
+				lines = reader.getLineNumber();
+			} catch (Exception ex) {
 
-			BufferedReader reader = new BufferedReader(new FileReader(this.getAssets().openFd("poop.svm").getFileDescriptor()));
+			} finally {
+				if(reader != null)
+					reader.close();
+			}
+
+			problem.x = new svm_node[lines][6];
+			problem.y = new double[lines];
+			problem.l = lines;
+
+			BufferedReader br = new BufferedReader(new InputStreamReader(this.getAssets().open("correct.svm")));
 
 			String line = null;
 			int lineNum = 0;
 
-			double[][] instances = new double[fileLines][6];
+			double[][] instances = new double[lines][7];
 
-			while ((line = reader.readLine()) != null) {
+			while ((line = br.readLine()) != null) {
 
 				String[] splits = line.split("\\s+");
 
@@ -120,13 +133,16 @@ public class FallDetectionService extends Service implements SensorEventListener
 
 			}
 
+			br.close();
+
 			for (int i = 0; i < instances.length; i++) {
 
-				for (int j = 1; i < 7; i++) {
+				for (int j = 1; j < 7; j++) {
 
-					problem.x[i][j] = new svm_node();
-					problem.x[i][j].index = j;
-					problem.x[i][j].value = instances[i][j];
+					svm_node node = new svm_node();
+					node.index = j;
+					node.value = instances[i][j];
+					problem.x[i][j - 1] = node;
 
 				}
 
@@ -170,29 +186,6 @@ public class FallDetectionService extends Service implements SensorEventListener
 				if (FallDetectionService.this.shouldLog)
 					FallDetectionService.this.shouldLog = false;
 				else {
-
-					MediaPlayer player = new MediaPlayer();
-					try {
-						player.setDataSource(FallDetectionService.this, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
-					} catch (IllegalArgumentException e) {
-						e.printStackTrace();
-					} catch (SecurityException e) {
-						e.printStackTrace();
-					} catch (IllegalStateException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					try {
-						player.prepare();
-					} catch (IllegalStateException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					player.start();
 
 					FallDetectionService.this.shouldLog = true;
 
@@ -309,13 +302,19 @@ public class FallDetectionService extends Service implements SensorEventListener
 				svm_node node = new svm_node();
 				node.index = 0;
 				node.value = this.lastGyroscopeAverages[i];
-				nodes[i] = node;
+				nodes[i + 3] = node;
 
 			}
 
+			if (this.model == null)
+				return;
+
 			double value = svm.svm_predict(this.model, nodes);
 
-			System.out.println("Value " + value);
+			if (value == 1.0)
+				this.fallDetected();
+
+			System.out.println(Arrays.toString(this.lastAccelerometerAverages) + " " + Arrays.toString(this.lastGyroscopeAverages) + " " + " Value " + value);
 
 		}
 
@@ -340,6 +339,33 @@ public class FallDetectionService extends Service implements SensorEventListener
 			}
 
 		}
+
+	}
+
+	private void fallDetected() {
+
+		MediaPlayer player = new MediaPlayer();
+		try {
+			player.setDataSource(FallDetectionService.this, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try {
+			player.prepare();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		player.start();
 
 	}
 
@@ -381,20 +407,6 @@ public class FallDetectionService extends Service implements SensorEventListener
 			output[i] = output[i] + ALPHA * (input[i] - output[i]);
 		}
 		return output;
-	}
-
-	public static int getLines(FileDescriptor ds) throws IOException {
-		LineNumberReader reader = null;
-		try {
-			reader = new LineNumberReader(new FileReader(ds));
-			while ((reader.readLine()) != null);
-			return reader.getLineNumber();
-		} catch (Exception ex) {
-			return -1;
-		} finally {
-			if(reader != null)
-				reader.close();
-		}
 	}
 
 }
