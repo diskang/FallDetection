@@ -286,6 +286,12 @@ public class FallDetectionService extends Service implements SensorEventListener
 			this.lastAccelerationDeltaUpdateTime = time;
 			this.lastGyroscopeDeltaUpdateTime = time;
 
+			/*float[] items = { -0.33059f, 3.288726f, 8.707171f };
+			float[] otherItems = { -0.104768f, -0.10437f, 0.064616f };
+
+			this.lastAccelerometerAverages = items;
+			this.lastGyroscopeAverages = otherItems;*/
+
 			svm_node[] nodes = new svm_node[6];
 
 			for (int i = 0; i < 3; i++) {
