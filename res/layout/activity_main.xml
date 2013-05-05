@@ -6,12 +6,4 @@
     android:weightSum="1.0"
     tools:context=".MainActivity" >
 
-    <Button
-        android:id="@+id/button1"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:onClick="buttonPressed"
-        android:text="Start Data Collection"
-        android:enabled="false" />
-
 </LinearLayout>
