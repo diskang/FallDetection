@@ -20,13 +20,6 @@
             android:dependency="pref_key_notifications_enabled" />
         
         <EditTextPreference
-            android:dialogTitle="Custom voice message"
-            android:key="pref_key_custom_voice_message"
-            android:summary="The message that will be played during the voice call made upon a fall."
-            android:title="Custom voice message"
-            android:dependency="pref_key_notifications_enabled" />
-
-        <EditTextPreference
             android:dialogTitle="Custom SMS message"
             android:key="pref_key_custom_sms_message"
             android:summary="The message that will be sent in the SMS message made upon a fall."
